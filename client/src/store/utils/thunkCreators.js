@@ -5,6 +5,7 @@ import {
   addConversation,
   setNewMessage,
   setSearchedUsers,
+  replaceMessages,
 } from "../conversations";
 import { gotUser, setFetchingStatus } from "../user";
 
@@ -104,6 +105,23 @@ export const postMessage = (body) => (dispatch) => {
     }
 
     sendMessage(data, body);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const putUnreadToReadMessages = (messageIds) => async (dispatch) => {
+  try {
+    const { data } = await axios.put("/api/messages/unread-to-read", {
+      messageIds,
+    });
+    const messages = data.messages;
+
+    if (messages) {
+      socket.emit("updated-messages", messages);
+
+      dispatch(replaceMessages(messages));
+    }
   } catch (error) {
     console.error(error);
   }
