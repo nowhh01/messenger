@@ -43,4 +43,23 @@ router.post("/", async (req, res, next) => {
   }
 });
 
+router.put("/unread-to-read", async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+
+    const { messageIds } = req.body;
+
+    const countAndMessages = await Message.update(
+      { isRead: true },
+      { where: { id: messageIds }, returning: true }
+    );
+
+    res.json({ messages: countAndMessages[1] });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;
