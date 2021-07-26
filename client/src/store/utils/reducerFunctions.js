@@ -13,9 +13,38 @@ export const addMessageToStore = (state, payload) => {
 
   return state.map((convo) => {
     if (convo.id === message.conversationId) {
-      const convoCopy = { ...convo };
+      const convoCopy = { ...convo, messages: [...convo.messages] };
       convoCopy.messages.push(message);
       convoCopy.latestMessageText = message.text;
+
+      return convoCopy;
+    } else {
+      return convo;
+    }
+  });
+};
+
+export const replaceMessagesFromStore = (state, payload) => {
+  const { messages } = payload;
+  const conversationId = messages[0].conversationId;
+
+  return state.map((convo) => {
+    if (convo.id === conversationId) {
+      const convoCopy = { ...convo };
+      const messageCopies = [...convoCopy.messages];
+
+      // replace messages with new ones
+      messages.forEach((m) => {
+        messageCopies.some((ccm, i) => {
+          if (ccm.id === m.id) {
+            messageCopies[i] = m;
+            return true;
+          }
+
+          return false;
+        });
+      });
+      convoCopy.messages = messageCopies;
 
       return convoCopy;
     } else {
