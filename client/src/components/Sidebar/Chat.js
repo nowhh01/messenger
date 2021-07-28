@@ -41,7 +41,14 @@ class Chat extends Component {
           sidebar={true}
         />
         <ChatContent conversation={conversation} />
-        <UnreadMessageCount messages={conversation.messages} userId={user.id} />
+
+        {conversation.unreadMessageCount > 0 && (
+          <UnreadMessageCount
+            messages={conversation.messages}
+            userId={user.id}
+            count={conversation.unreadMessageCount}
+          />
+        )}
       </Box>
     );
   }
