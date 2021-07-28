@@ -1,48 +1,31 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Box, makeStyles, Typography } from "@material-ui/core";
+import { withTheme } from "@material-ui/core/styles";
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   container: {
-    padding: "4px 8px",
-    backgroundColor: "#3A8DFF",
-    borderRadius: "10px",
+    padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
+    backgroundColor: theme.palette.primary.main,
+    borderRadius: "10px"
   },
   text: {
+    fontFamily: theme.typography.fontFamily,
     fontSize: 10,
     fontWeight: "bold",
     color: "#FFFFFF",
     lineHeight: "12px",
-    letterSpacing: -0.5,
-  },
+    letterSpacing: -0.5
+  }
 }));
 
-function UnreadMessageCount({ messages, userId }) {
-  const classes = useStyles();
+function UnreadMessageCount({ theme, count }) {
+  const classes = useStyles(theme);
 
-  const unreadMessageCount = useMemo(() => {
-    let unreadMessageCount = 0;
-
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const message = messages[i];
-
-      if (message.senderId !== userId) {
-        if (message.isRead) {
-          break;
-        } else {
-          unreadMessageCount++;
-        }
-      }
-    }
-
-    return unreadMessageCount;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages]);
-
-  return unreadMessageCount > 0 ? (
+  return (
     <Box className={classes.container}>
-      <Typography className={classes.text}>{unreadMessageCount}</Typography>
+      <Typography className={classes.text}>{count}</Typography>
     </Box>
-  ) : null;
+  );
 }
 
-export default UnreadMessageCount;
+export default withTheme(UnreadMessageCount);
