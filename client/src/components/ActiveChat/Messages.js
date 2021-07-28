@@ -2,32 +2,20 @@ import React, { useEffect, useMemo } from "react";
 import { Box } from "@material-ui/core";
 import { SenderBubble, OtherUserBubble } from "../ActiveChat";
 import moment from "moment";
-import { putUnreadToReadMessages } from "../../store/utils/thunkCreators";
+import { findAndUpdateUnreadToReadMessages } from "../../store/utils/thunkCreators";
 import { connect } from "react-redux";
 
 const Messages = (props) => {
-  const { messages, otherUser, userId, putUnreadToReadMessages } = props;
+  const { messages, otherUser, userId, findAndUpdateUnreadToReadMessages } =
+    props;
 
   useEffect(() => {
-    const unreadMessageIds = [];
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const message = messages[i];
+    const conversationId = messages[0].conversationId;
 
-      if (message.senderId === otherUser.id) {
-        if (message.isRead) {
-          break;
-        } else {
-          unreadMessageIds.push(message.id);
-        }
-      }
-    }
-
-    if (unreadMessageIds.length > 0) {
-      putUnreadToReadMessages(unreadMessageIds);
-    }
+    findAndUpdateUnreadToReadMessages(conversationId);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages]);
+  }, [otherUser]);
 
   const latestReadMessageIndex = useMemo(() => {
     let latestReadMessageIndex = -1;
@@ -75,9 +63,9 @@ const mapStateToProps = null;
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    putUnreadToReadMessages: (messageIds) => {
-      dispatch(putUnreadToReadMessages(messageIds));
-    },
+    findAndUpdateUnreadToReadMessages: (conversationId) => {
+      dispatch(findAndUpdateUnreadToReadMessages(conversationId));
+    }
   };
 };
 
