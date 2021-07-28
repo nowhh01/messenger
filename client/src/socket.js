@@ -4,7 +4,7 @@ import {
   setNewMessage,
   removeOfflineUser,
   addOnlineUser,
-  replaceMessages,
+  replaceMessagesAndCount
 } from "./store/conversations";
 
 const socket = io(window.location.origin);
@@ -25,7 +25,7 @@ socket.on("connect", () => {
   });
 
   socket.on("updated-messages", (messages) => {
-    store.dispatch(replaceMessages(messages));
+    store.dispatch(replaceMessagesAndCount(messages));
   });
 });
 
