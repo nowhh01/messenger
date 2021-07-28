@@ -5,7 +5,7 @@ export const addMessageToStore = (state, payload) => {
     const newConvo = {
       id: message.conversationId,
       otherUser: sender,
-      messages: [message],
+      messages: [message]
     };
     newConvo.latestMessageText = message.text;
     return [newConvo, ...state];
@@ -24,8 +24,8 @@ export const addMessageToStore = (state, payload) => {
   });
 };
 
-export const replaceMessagesFromStore = (state, payload) => {
-  const { messages } = payload;
+export const replaceMessagesAndCountFromStore = (state, payload) => {
+  const { messages, count } = payload;
   const conversationId = messages[0].conversationId;
 
   return state.map((convo) => {
@@ -34,17 +34,33 @@ export const replaceMessagesFromStore = (state, payload) => {
       const messageCopies = [...convoCopy.messages];
 
       // replace messages with new ones
-      messages.forEach((m) => {
-        messageCopies.some((ccm, i) => {
-          if (ccm.id === m.id) {
-            messageCopies[i] = m;
-            return true;
-          }
-
-          return false;
-        });
+      messages.forEach((message) => {
+        const index = messageCopies.findIndex(
+          (messageCopy) => messageCopy.id === message.id
+        );
+        messageCopies[index] = message;
       });
+
+      if (count != null) {
+        convoCopy.unreadMessageCount = count;
+      }
+
       convoCopy.messages = messageCopies;
+
+      return convoCopy;
+    } else {
+      return convo;
+    }
+  });
+};
+
+export const updateUnreadMessageCountFromStore = (state, payload) => {
+  const { conversationId, count } = payload;
+
+  return state.map((convo) => {
+    if (convo.id === conversationId) {
+      const convoCopy = { ...convo };
+      convoCopy.unreadMessageCount = count;
 
       return convoCopy;
     } else {
