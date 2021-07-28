@@ -26,7 +26,7 @@ router.post("/", async (req, res, next) => {
       // create conversation
       conversation = await Conversation.create({
         user1Id: senderId,
-        user2Id: recipientId,
+        user2Id: recipientId
       });
       if (onlineUsers.includes(sender.id)) {
         sender.online = true;
@@ -35,7 +35,7 @@ router.post("/", async (req, res, next) => {
     const message = await Message.create({
       senderId,
       text,
-      conversationId: conversation.id,
+      conversationId: conversation.id
     });
     res.json({ message, sender });
   } catch (error) {
@@ -43,17 +43,32 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.put("/unread-to-read", async (req, res, next) => {
+router.put("/unread-to-read-from-other", async (req, res, next) => {
   try {
     if (!req.user) {
       return res.sendStatus(401);
     }
 
-    const { messageIds } = req.body;
+    const userId = req.user.id;
+    const { conversationId } = req.body;
+
+    // check if it is one of user's conversations
+    const conversation = await Conversation.findConversationById(
+      conversationId
+    );
+    if (!conversation) {
+      return res.sendStatus(403);
+    }
+
+    const messages = await Message.findAllUnreadFromOther(
+      userId,
+      conversationId
+    );
+    const ids = messages.map((m) => m.id);
 
     const countAndMessages = await Message.update(
       { isRead: true },
-      { where: { id: messageIds }, returning: true }
+      { where: { id: ids }, returning: true }
     );
 
     res.json({ messages: countAndMessages[1] });
