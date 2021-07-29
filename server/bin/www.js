@@ -31,27 +31,33 @@ const server = http.createServer(app);
 
 const io = require("socket.io")(server);
 
+io.use((socket, next) => {
+  const userId = socket.handshake.auth.userId;
+  if (!userId) {
+    return next(new Error("invalid userId"));
+  }
+  socket.userId = userId;
+  next();
+});
+
 io.on("connection", (socket) => {
-  socket.on("go-online", (id) => {
-    if (!onlineUsers.includes(id)) {
-      onlineUsers.push(id);
-    }
-    // send the user who just went online to everyone else who is already online
-    socket.broadcast.emit("add-online-user", id);
-  });
+  console.log("socket connected");
 
-  socket.on("new-message", (data) => {
-    socket.broadcast.emit("new-message", {
-      message: data.message,
-      sender: data.sender,
-    });
-  });
+  const userId = socket.userId;
+  if (!onlineUsers.includes(userId)) {
+    onlineUsers.push(userId);
+  }
 
-  socket.on("logout", (id) => {
-    if (onlineUsers.includes(id)) {
-      userIndex = onlineUsers.indexOf(id);
+  // add to room
+  socket.join(userId);
+  socket.broadcast.emit("add-online-user", userId);
+
+  socket.on("disconnecting", () => {
+    const userId = socket.userId;
+    if (onlineUsers.includes(userId)) {
+      userIndex = onlineUsers.indexOf(userId);
       onlineUsers.splice(userIndex, 1);
-      socket.broadcast.emit("remove-offline-user", id);
+      socket.broadcast.emit("remove-offline-user", userId);
     }
   });
 });
@@ -121,3 +127,5 @@ function onListening() {
 
   console.log("Listening on " + bind);
 }
+
+exports.io = io;
