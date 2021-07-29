@@ -1,5 +1,5 @@
-import axios from 'axios';
-import socket from '../../socket';
+import axios from "axios";
+import socket from "../../socket";
 import {
   gotConversations,
   addConversation,
@@ -9,8 +9,8 @@ import {
 import { gotUser, setFetchingStatus } from "../user";
 
 axios.interceptors.request.use(async function (config) {
-  const token = await localStorage.getItem('messenger-token');
-  config.headers['x-access-token'] = token;
+  const token = await localStorage.getItem("messenger-token");
+  config.headers["x-access-token"] = token;
 
   return config;
 });
@@ -20,11 +20,11 @@ axios.interceptors.request.use(async function (config) {
 export const fetchUser = () => async (dispatch) => {
   dispatch(setFetchingStatus(true));
   try {
-    const { data } = await axios.get('/auth/user');
+    const { data } = await axios.get("/auth/user");
     dispatch(gotUser(data));
 
     if (data.id) {
-      connectSocketIo(data.id);
+      connectSocketIo();
     }
   } catch (error) {
     console.error(error);
@@ -39,10 +39,10 @@ export const register = (credentials) => async (dispatch) => {
     await localStorage.setItem("messenger-token", data.token);
 
     dispatch(gotUser(data));
-    connectSocketIo(data.id);
+    connectSocketIo();
   } catch (error) {
     console.error(error);
-    dispatch(gotUser({ error: error.response.data.error || 'Server Error' }));
+    dispatch(gotUser({ error: error.response.data.error || "Server Error" }));
   }
 };
 
@@ -52,10 +52,10 @@ export const login = (credentials) => async (dispatch) => {
     await localStorage.setItem("messenger-token", data.token);
 
     dispatch(gotUser(data));
-    connectSocketIo(data.id);
+    connectSocketIo();
   } catch (error) {
     console.error(error);
-    dispatch(gotUser({ error: error.response.data.error || 'Server Error' }));
+    dispatch(gotUser({ error: error.response.data.error || "Server Error" }));
   }
 };
 
@@ -75,7 +75,7 @@ export const logout = () => async (dispatch) => {
 
 export const fetchConversations = () => async (dispatch) => {
   try {
-    const { data } = await axios.get('/api/conversations');
+    const { data } = await axios.get("/api/conversations");
     dispatch(gotConversations(data));
   } catch (error) {
     console.error(error);
@@ -83,7 +83,7 @@ export const fetchConversations = () => async (dispatch) => {
 };
 
 const saveMessage = async (body) => {
-  const { data } = await axios.post('/api/messages', body);
+  const { data } = await axios.post("/api/messages", body);
   return data;
 };
 
@@ -112,7 +112,9 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
   }
 };
 
-const connectSocketIo = (userId) => {
-  socket.auth = { userId };
+const connectSocketIo = async () => {
+  const token = await localStorage.getItem("messenger-token");
+
+  socket.auth = { token };
   socket.connect();
 };
