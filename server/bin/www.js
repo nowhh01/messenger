@@ -29,14 +29,26 @@ const server = http.createServer(app);
  */
 
 const io = require("socket.io")(server);
+const jwt = require("jsonwebtoken");
+const { User } = require("../db/models");
 
 io.use((socket, next) => {
-  const userId = socket.handshake.auth.userId;
-  if (!userId) {
-    return next(new Error("invalid userId"));
+  const token = socket.handshake.auth.token;
+  if (token) {
+    jwt.verify(token, process.env.SESSION_SECRET, (err, decoded) => {
+      if (err) {
+        return next(new Error("invalid user"));
+      }
+      User.findOne({
+        where: { id: decoded.id }
+      }).then((user) => {
+        socket.userId = user.id;
+        return next();
+      });
+    });
+  } else {
+    next(new Error("invalid user"));
   }
-  socket.userId = userId;
-  next();
 });
 
 io.on("connection", (socket) => {
