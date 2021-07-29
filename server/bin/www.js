@@ -10,7 +10,6 @@ require("dotenv").config();
 const { app, sessionStore } = require("../app");
 const http = require("http");
 const db = require("../db");
-const onlineUsers = require("../onlineUsers");
 
 /**
  * Get port from environment and store in Express.
@@ -44,9 +43,6 @@ io.on("connection", (socket) => {
   console.log("socket connected");
 
   const userId = socket.userId;
-  if (!onlineUsers.includes(userId)) {
-    onlineUsers.push(userId);
-  }
 
   // add to room
   socket.join(userId);
@@ -54,11 +50,7 @@ io.on("connection", (socket) => {
 
   socket.on("disconnecting", () => {
     const userId = socket.userId;
-    if (onlineUsers.includes(userId)) {
-      userIndex = onlineUsers.indexOf(userId);
-      onlineUsers.splice(userIndex, 1);
-      socket.broadcast.emit("remove-offline-user", userId);
-    }
+    socket.broadcast.emit("remove-offline-user", userId);
   });
 });
 
