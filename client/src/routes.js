@@ -5,6 +5,7 @@ import { fetchUser } from "./store/utils/thunkCreators";
 import Signup from "./Signup.js";
 import Login from "./Login.js";
 import { Home, SnackbarError } from "./components";
+import AuthLayout from "./AuthLayout";
 
 const Routes = (props) => {
   const { user, fetchUser } = props;
@@ -41,8 +42,22 @@ const Routes = (props) => {
         />
       )}
       <Switch>
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Signup} />
+        <Route
+          path="/login"
+          render={(props) => (
+            <AuthLayout>
+              <Login {...props} />
+            </AuthLayout>
+          )}
+        />
+        <Route
+          path="/register"
+          render={(props) => (
+            <AuthLayout>
+              <Signup {...props} />
+            </AuthLayout>
+          )}
+        />
         <Route
           exact
           path="/"
@@ -56,7 +71,7 @@ const Routes = (props) => {
 
 const mapStateToProps = (state) => {
   return {
-    user: state.user,
+    user: state.user
   };
 };
 
@@ -64,7 +79,7 @@ const mapDispatchToProps = (dispatch) => {
   return {
     fetchUser() {
       dispatch(fetchUser());
-    },
+    }
   };
 };
 
