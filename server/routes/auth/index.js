@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { User } = require("../../db/models");
 const jwt = require("jsonwebtoken");
+const socketIo = require("../../bin/www");
 
 router.post("/register", async (req, res, next) => {
   try {
@@ -28,7 +29,7 @@ router.post("/register", async (req, res, next) => {
     );
     res.json({
       ...user.dataValues,
-      token,
+      token
     });
   } catch (error) {
     if (error.name === "SequelizeUniqueConstraintError") {
@@ -48,8 +49,8 @@ router.post("/login", async (req, res, next) => {
 
     const user = await User.findOne({
       where: {
-        username: req.body.username,
-      },
+        username: req.body.username
+      }
     });
 
     if (!user) {
@@ -64,9 +65,13 @@ router.post("/login", async (req, res, next) => {
         process.env.SESSION_SECRET,
         { expiresIn: 86400 }
       );
+
+      // notify of new login user
+      socketIo.io.emit("add-online-user", user.dataValues.id);
+
       res.json({
         ...user.dataValues,
-        token,
+        token
       });
     }
   } catch (error) {

@@ -10,7 +10,6 @@ require("dotenv").config();
 const { app, sessionStore } = require("../app");
 const http = require("http");
 const db = require("../db");
-const onlineUsers = require("../onlineUsers");
 
 /**
  * Get port from environment and store in Express.
@@ -30,29 +29,40 @@ const server = http.createServer(app);
  */
 
 const io = require("socket.io")(server);
+const jwt = require("jsonwebtoken");
+const { User } = require("../db/models");
+
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (token) {
+    jwt.verify(token, process.env.SESSION_SECRET, (err, decoded) => {
+      if (err) {
+        return next(new Error("invalid user"));
+      }
+      User.findOne({
+        where: { id: decoded.id }
+      }).then((user) => {
+        socket.userId = user.id;
+        return next();
+      });
+    });
+  } else {
+    next(new Error("invalid user"));
+  }
+});
 
 io.on("connection", (socket) => {
-  socket.on("go-online", (id) => {
-    if (!onlineUsers.includes(id)) {
-      onlineUsers.push(id);
-    }
-    // send the user who just went online to everyone else who is already online
-    socket.broadcast.emit("add-online-user", id);
-  });
+  console.log("socket connected");
 
-  socket.on("new-message", (data) => {
-    socket.broadcast.emit("new-message", {
-      message: data.message,
-      sender: data.sender,
-    });
-  });
+  const userId = socket.userId;
 
-  socket.on("logout", (id) => {
-    if (onlineUsers.includes(id)) {
-      userIndex = onlineUsers.indexOf(id);
-      onlineUsers.splice(userIndex, 1);
-      socket.broadcast.emit("remove-offline-user", id);
-    }
+  // add to room
+  socket.join(userId);
+  socket.broadcast.emit("add-online-user", userId);
+
+  socket.on("disconnecting", () => {
+    const userId = socket.userId;
+    socket.broadcast.emit("remove-offline-user", userId);
   });
 
   socket.on("updated-messages", (messages) => {
@@ -125,3 +135,5 @@ function onListening() {
 
   console.log("Listening on " + bind);
 }
+
+exports.io = io;

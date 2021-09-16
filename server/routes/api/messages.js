@@ -1,9 +1,9 @@
-const router = require('express').Router();
-const { Conversation, Message } = require('../../db/models');
-const onlineUsers = require('../../onlineUsers');
+const router = require("express").Router();
+const socketIo = require("../../bin/www");
+const { Conversation, Message } = require("../../db/models");
 
 // expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)
-router.post('/', async (req, res, next) => {
+router.post("/", async (req, res, next) => {
   try {
     if (!req.user) {
       return res.sendStatus(401);
@@ -23,7 +23,8 @@ router.post('/', async (req, res, next) => {
         user1Id: senderId,
         user2Id: recipientId
       });
-      if (onlineUsers.includes(sender.id)) {
+
+      if (socketIo.io.of("/").adapter.rooms.get(sender.id)) {
         sender.online = true;
       }
     } else if (conversation.id !== conversationId) {
@@ -35,7 +36,16 @@ router.post('/', async (req, res, next) => {
       text,
       conversationId: conversation.id
     });
-    res.json({ message, sender });
+
+    const newMessage = {
+      message,
+      sender
+    };
+
+    // notify recipient of new message
+    socketIo.io.to(recipientId).emit("new-message", newMessage);
+
+    res.json(newMessage);
   } catch (error) {
     next(error);
   }

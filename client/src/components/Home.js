@@ -10,22 +10,22 @@ import { clearOnLogout } from "../store/index";
 
 const styles = {
   root: {
-    height: "97vh",
-  },
+    height: "97vh"
+  }
 };
 
 class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isLoggedIn: false,
+      isLoggedIn: false
     };
   }
 
   componentDidUpdate(prevProps) {
     if (this.props.user.id !== prevProps.user.id) {
       this.setState({
-        isLoggedIn: true,
+        isLoggedIn: true
       });
     }
   }
@@ -35,7 +35,7 @@ class Home extends Component {
   }
 
   handleLogout = async () => {
-    await this.props.logout(this.props.user.id);
+    await this.props.logout();
   };
 
   render() {
@@ -64,19 +64,19 @@ class Home extends Component {
 const mapStateToProps = (state) => {
   return {
     user: state.user,
-    conversations: state.conversations,
+    conversations: state.conversations
   };
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    logout: (id) => {
-      dispatch(logout(id));
+    logout: () => {
+      dispatch(logout());
       dispatch(clearOnLogout());
     },
     fetchConversations: () => {
       dispatch(fetchConversations());
-    },
+    }
   };
 };
 
