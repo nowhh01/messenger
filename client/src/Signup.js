@@ -94,7 +94,6 @@ const Login = (props) => {
 
   return (
     <>
-      {" "}
       <Grid container className={classes.topContainer}>
         <Typography align="center" className={classes.topContainerText}>
           Already have an account?
