@@ -64,6 +64,10 @@ io.on("connection", (socket) => {
     const userId = socket.userId;
     socket.broadcast.emit("remove-offline-user", userId);
   });
+
+  socket.on("updated-messages", (messages) => {
+    socket.broadcast.emit("updated-messages", messages);
+  });
 });
 
 sessionStore

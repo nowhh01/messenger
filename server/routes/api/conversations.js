@@ -16,8 +16,8 @@ router.get('/', async (req, res, next) => {
       where: {
         [Op.or]: {
           user1Id: userId,
-          user2Id: userId
-        }
+          user2Id: userId,
+        },
       },
       attributes: ['id'],
       order: [[Message, 'createdAt', 'ASC']],
@@ -28,24 +28,24 @@ router.get('/', async (req, res, next) => {
           as: 'user1',
           where: {
             id: {
-              [Op.not]: userId
-            }
+              [Op.not]: userId,
+            },
           },
           attributes: ['id', 'username', 'photoUrl'],
-          required: false
+          required: false,
         },
         {
           model: User,
           as: 'user2',
           where: {
             id: {
-              [Op.not]: userId
-            }
+              [Op.not]: userId,
+            },
           },
           attributes: ['id', 'username', 'photoUrl'],
-          required: false
-        }
-      ]
+          required: false,
+        },
+      ],
     });
 
     const rooms = socketIo.io.of('/').adapter.rooms;
@@ -69,6 +69,9 @@ router.get('/', async (req, res, next) => {
         convoJSON.otherUser.online = false;
       }
 
+      const messages = await Message.findAllUnreadFromOther(userId, convo.id);
+      convoJSON.unreadMessageCount = messages.length;
+
       // set properties for notification count and latest message preview
       convoJSON.latestMessageText =
         convoJSON.messages[convoJSON.messages.length - 1].text;
@@ -78,7 +81,7 @@ router.get('/', async (req, res, next) => {
     conversations.sort(
       (c1, c2) =>
         c2.messages[c2.messages.length - 1].createdAt -
-        c1.messages[c1.messages.length - 1].createdAt
+        c1.messages[c1.messages.length - 1].createdAt,
     );
     res.json(conversations);
   } catch (error) {
