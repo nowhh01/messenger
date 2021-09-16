@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const { User } = require("../../db/models");
 const { Op } = require("sequelize");
-const onlineUsers = require("../../onlineUsers");
+const socketIo = require("../../bin/www");
 
 // find users by username
 router.get("/:username", async (req, res, next) => {
@@ -14,20 +14,23 @@ router.get("/:username", async (req, res, next) => {
     const users = await User.findAll({
       where: {
         username: {
-          [Op.substring]: username,
+          [Op.substring]: username
         },
         id: {
-          [Op.not]: req.user.id,
-        },
-      },
+          [Op.not]: req.user.id
+        }
+      }
     });
 
     // add online status to each user that is online
+    const rooms = socketIo.io.of("/").adapter.rooms;
     for (let i = 0; i < users.length; i++) {
       const userJSON = users[i].toJSON();
-      if (onlineUsers.includes(userJSON.id)) {
+
+      if (rooms.get(userJSON.id)) {
         userJSON.online = true;
       }
+
       users[i] = userJSON;
     }
     res.json(users);
