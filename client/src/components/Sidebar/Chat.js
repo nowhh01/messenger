@@ -4,6 +4,7 @@ import { BadgeAvatar, ChatContent } from "../Sidebar";
 import { withStyles } from "@material-ui/core/styles";
 import { setActiveChat } from "../../store/activeConversation";
 import { connect } from "react-redux";
+import UnreadMessageCount from "./UnreadMessageCount";
 
 const styles = {
   root: {
@@ -14,9 +15,9 @@ const styles = {
     display: "flex",
     alignItems: "center",
     "&:hover": {
-      cursor: "grab",
-    },
-  },
+      cursor: "grab"
+    }
+  }
 };
 
 class Chat extends Component {
@@ -25,11 +26,12 @@ class Chat extends Component {
   };
 
   render() {
-    const { classes } = this.props;
-    const otherUser = this.props.conversation.otherUser;
+    const { classes, conversation, user } = this.props;
+    const otherUser = conversation.otherUser;
+
     return (
       <Box
-        onClick={() => this.handleClick(this.props.conversation)}
+        onClick={() => this.handleClick(conversation)}
         className={classes.root}
       >
         <BadgeAvatar
@@ -38,18 +40,35 @@ class Chat extends Component {
           online={otherUser.online}
           sidebar={true}
         />
-        <ChatContent conversation={this.props.conversation} />
+        <ChatContent conversation={conversation} />
+
+        {conversation.unreadMessageCount > 0 && (
+          <UnreadMessageCount
+            messages={conversation.messages}
+            userId={user.id}
+            count={conversation.unreadMessageCount}
+          />
+        )}
       </Box>
     );
   }
 }
 
-const mapDispatchToProps = (dispatch) => {
+const mapStateToProps = (state) => {
   return {
-    setActiveChat: (id) => {
-      dispatch(setActiveChat(id));
-    },
+    user: state.user
   };
 };
 
-export default connect(null, mapDispatchToProps)(withStyles(styles)(Chat));
+const mapDispatchToProps = (dispatch) => {
+  return {
+    setActiveChat: (username) => {
+      dispatch(setActiveChat(username));
+    }
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withStyles(styles)(Chat));

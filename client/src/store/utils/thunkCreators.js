@@ -5,8 +5,9 @@ import {
   addConversation,
   setNewMessage,
   setSearchedUsers,
-} from '../conversations';
-import { gotUser, setFetchingStatus } from '../user';
+  replaceMessagesAndCount
+} from "../conversations";
+import { gotUser, setFetchingStatus } from "../user";
 
 axios.interceptors.request.use(async function (config) {
   const token = await localStorage.getItem('messenger-token');
@@ -87,7 +88,7 @@ const sendMessage = (data, body) => {
   socket.emit('new-message', {
     message: data.message,
     recipientId: body.recipientId,
-    sender: data.sender,
+    sender: data.sender
   });
 };
 
@@ -108,6 +109,27 @@ export const postMessage = (body) => async (dispatch) => {
     console.error(error);
   }
 };
+
+export const findAndUpdateUnreadToReadMessages =
+  (conversationId) => async (dispatch) => {
+    try {
+      const { data } = await axios.put(
+        "/api/messages/unread-to-read-from-other",
+        {
+          conversationId
+        }
+      );
+      const messages = data.messages;
+
+      if (messages?.length > 0) {
+        socket.emit("updated-messages", messages);
+
+        dispatch(replaceMessagesAndCount(messages, 0));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
 export const searchUsers = (searchTerm) => async (dispatch) => {
   try {
