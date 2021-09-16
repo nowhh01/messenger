@@ -2,6 +2,8 @@
 
 A one-to-one realtime chat app.
 
+![2021_09_16_16_27_50_159](https://user-images.githubusercontent.com/39201456/133681397-73922d23-5f92-4666-9778-2c3fa9ce9cc7.gif)
+
 ## Initial Setup
 
 Create the PostgreSQL database (these instructions may need to be adapted for your operating system):
